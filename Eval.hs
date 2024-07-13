@@ -59,9 +59,7 @@ evalLet _ = return $ Left "invalid let expression"
 evalLambda :: [SExpr] -> EvalState
 evalLambda [param, body] = do
   case param of
-    (A (I p)) -> do
-      env <- get
-      return $ Right $ Func $ Function p body env
+    (A (I p)) -> Right . Func . Function p body <$> get
     _ -> return $ Left "One param required for lambda expression"
 evalLambda _ = return $ Left "invalid lambda expression"
 
@@ -101,7 +99,7 @@ evalComb (x : xs) = case x of
     env <- get
     case runState (evalSExpr x) env of
       (Right (Func f), env) -> applyLambda f (head xs)
-      a -> return $ Left (show a)
+      a -> return $ Left "Function required at beginning of S-Expr"
 
 monoidOp :: (Integer -> Integer -> Integer) -> Integer -> [SExpr] -> EvalState
 monoidOp f base [] = return $ Right (Intg base)
@@ -113,7 +111,7 @@ monoidOp f base (x : xs) = state g
         (Left a, env) -> (Left a, env)
         (Right v, env) -> case (v, i) of
           (Intg val, Intg int) -> (Right (Intg (f val int)), env)
-          _ -> (Left "interger value(e) neede", env)
+          _ -> (Left "interger value(s) needed", env)
 
 sumUpXs :: [SExpr] -> EvalState
 sumUpXs = monoidOp (+) 0
