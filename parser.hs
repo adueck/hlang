@@ -182,6 +182,8 @@ parseSExpr =
 
 type Value = Integer
 
+data Function = Function Identifier SExpr
+
 type EvalResult = Either String Value
 
 type Env = Map.Map Identifier Value
@@ -217,7 +219,17 @@ evalIdentExp i s
   | otherwise = return $ Left "custom functions not implemented"
 
 evalLet :: [SExpr] -> EvalState
-evalLet [def, body] = case def of
+evalLet [def, body] = do
+  case def of
+    Comb defs -> do
+      mapM_ addDef defs
+      return $ Right 0
+    _ -> return $ Left "list of definitions required in let definitions section"
+  evalSExpr body
+evalLet _ = return $ Left "invalid let expression"
+
+addDef :: SExpr -> EvalState
+addDef s = case s of
   Comb [var, val] -> case var of
     A (I i) -> do
       env <- get
@@ -226,10 +238,9 @@ evalLet [def, body] = case def of
         Left err -> return $ Left err
         Right v -> do
           put $ Map.insert i v env
-          evalSExpr body
+          return $ Right 0
     _ -> return $ Left "invalid let body"
   _ -> return $ Left "invalid let body, definition required"
-evalLet _ = return $ Left "invalid let body"
 
 evalComb :: [SExpr] -> EvalState
 evalComb [] = return $ Left "Empty S-Expression"
@@ -246,7 +257,7 @@ monoidOp f base (x : xs) = state g
   where
     g s = case runState (evalSExpr x) s of
       (Left a, env) -> (Left a, env)
-      (Right i, env) -> case runState (monoidOp f base xs) env of
+      (Right i, env) -> case runState (monoidOp f base xs) s of
         (Left a, env) -> (Left a, env)
         (Right v, env) -> (Right (f v i), env)
 
@@ -267,7 +278,7 @@ minusUpXs (x : xs) = state f
   where
     f s = case runState (evalSExpr x) s of
       (Left a, env) -> (Left a, env)
-      (Right toStart, env) -> case runState (sumUpXs xs) env of
+      (Right toStart, env) -> case runState (sumUpXs xs) s of
         (Left a, env) -> (Left a, env)
         (Right toSub, env) -> (Right (toStart - toSub), env)
 
