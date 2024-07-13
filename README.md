@@ -21,5 +21,5 @@ $ runghc Main.hs
 To evaluate a file:
 
 ```
-$ runghc Interp.hs example.hp
+$ runghc Main.hs example.hp
 ```

@@ -8,12 +8,19 @@ import Control.Monad.State.Lazy
 import Data.Map qualified as Map
 import Eval
 import Parser
+import System.Environment
 import Types
 
 main = do
-  putStrLn "Welcome to HParser"
-  putStrLn "Enter an expression or type 'exit' to quit"
-  runPrompt
+  args <- getArgs
+  if null args
+    then do
+      putStrLn "Welcome to HParser"
+      putStrLn "Enter an expression or type 'exit' to quit"
+      runPrompt
+    else do
+      contents <- readFile (head args)
+      interp contents
 
 runPrompt = do
   putStr "> "
