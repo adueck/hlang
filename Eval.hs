@@ -41,11 +41,6 @@ evalOpExp Add = sumUpXs
 evalOpExp Subtract = minusUpXs
 evalOpExp Multiply = multiplyXs
 
-evalIdentExp :: Identifier -> [SExpr] -> EvalState
-evalIdentExp i s
-  | i == "let" = evalLet s
-  | otherwise = return $ Left "custom functions not implemented"
-
 evalLet :: [SExpr] -> EvalState
 evalLet [def, body] = do
   case def of
