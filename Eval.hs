@@ -96,6 +96,7 @@ evalComb [] = return $ Left "Empty S-Expression"
 evalComb (x : xs) = case x of
   (A (O o)) -> evalOpExp o xs
   (A (I "lambda")) -> evalLambda xs
+  (A (I "let")) -> evalLet xs
   _ -> do
     env <- get
     case runState (evalSExpr x) env of
