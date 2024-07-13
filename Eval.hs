@@ -104,7 +104,7 @@ monoidOp f base (x : xs) = state g
       (Left a, env) -> (Left a, env)
       (Right i, env) -> case runState (monoidOp f base xs) s of
         (Left a, env) -> (Left a, env)
-        (Right v, env) -> case (v, i) of
+        (Right v, env') -> case (v, i) of
           (Intg val, Intg int) -> (Right (Intg (f val int)), env)
           _ -> (Left "interger value(s) needed", env)
 
