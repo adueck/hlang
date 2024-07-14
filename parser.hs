@@ -22,6 +22,18 @@ string :: String -> Parser String
 string "" = return ""
 string (x : xs) = (:) <$> char x <*> string xs
 
+isEnd :: Parser Char
+isEnd = Parser f
+  where
+    f [] = Right ('a', [])
+    f xs = Left ("not end", xs)
+
+comment :: Parser [Char]
+comment = (char '#' *> manyTill (char '\n' <|> isEnd) anything) <|> pure []
+
+anything :: Parser Char
+anything = satisfy (const True)
+
 posInt :: Parser Integer
 posInt = Parser f
   where
@@ -36,6 +48,9 @@ zeroOrMore p = oneOrMore p <|> pure []
 
 oneOrMore :: Parser a -> Parser [a]
 oneOrMore p = (:) <$> p <*> zeroOrMore p
+
+whiteSpace :: Parser [Char]
+whiteSpace = (++) <$> spaces <*> ((++) <$> comment <*> spaces)
 
 spaces :: Parser String
 spaces = zeroOrMore (satisfy isSpace)
@@ -70,8 +85,8 @@ parseComb =
 
 parseSExpr :: Parser SExpr
 parseSExpr =
-  spaces
+  whiteSpace
     *> ( (A <$> parseAtom)
            <|> (Comb <$> parseComb)
        ) -- add msg thing here
-    <* spaces
+    <* whiteSpace
