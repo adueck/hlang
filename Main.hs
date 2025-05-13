@@ -40,4 +40,4 @@ interp l = do
     Right (s, ls) -> do
       case runState (evalSExpr s) Map.empty of
         (Left err, env) -> putStrLn $ "RUNTIME ERROR: " ++ err
-        (Right i, env) -> print i
+        (Right i, env) -> print (i, env)

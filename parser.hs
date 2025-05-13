@@ -50,7 +50,7 @@ oneOrMore :: Parser a -> Parser [a]
 oneOrMore p = (:) <$> p <*> zeroOrMore p
 
 whiteSpace :: Parser [Char]
-whiteSpace = (++) <$> spaces <*> ((++) <$> comment <*> spaces)
+whiteSpace = spaces *> comment *> spaces
 
 spaces :: Parser String
 spaces = zeroOrMore (satisfy isSpace)

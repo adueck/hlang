@@ -8,7 +8,7 @@ import Control.Monad.State.Lazy
 import Data.Map qualified as Map
 import Types
 
-data Value = Intg Integer | Func Function deriving (Show, Eq)
+data Value = Intg Integer | Func Function | Void () deriving (Show, Eq)
 
 data Function = Function Identifier SExpr Env deriving (Show, Eq)
 
@@ -46,7 +46,7 @@ evalLet [def, body] = do
   case def of
     Comb defs -> do
       mapM_ addDef defs
-      return $ Right 0
+      return $ Right ()
     _ -> return $ Left "list of definitions required in let definitions section"
   evalSExpr body
 evalLet _ = return $ Left "invalid let expression"
@@ -80,7 +80,7 @@ addDef s = case s of
         Left err -> return $ Left err
         Right v -> do
           put $ Map.insert i v env
-          return $ Right $ Intg 0
+          return $ Right $ Void ()
     _ -> return $ Left "invalid let body"
   _ -> return $ Left "invalid let body, definition required"
 
@@ -90,6 +90,7 @@ evalComb (x : xs) = case x of
   (A (O o)) -> evalOpExp o xs
   (A (I "lambda")) -> evalLambda xs
   (A (I "let")) -> evalLet xs
+  (A (I "define")) -> addDef (Comb [head xs, xs !! 1])
   _ -> do
     env <- get
     case runState (evalSExpr x) env of

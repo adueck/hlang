@@ -55,15 +55,11 @@ instance Applicative Parser where
     where
       g xs = Right (a, xs)
   (<*>) :: Parser (a -> b) -> Parser a -> Parser b
-  (Parser rp1) <*> (Parser rp2) = Parser f
+  (Parser rp1) <*> p2 = Parser f
     where
       f xs = case rp1 xs of
         Left e -> Left e
-        Right (pf, s') -> g s'
-          where
-            g xs' = case rp2 xs' of
-              Left e -> Left e
-              Right (val, l) -> Right (pf val, l)
+        Right (pf, s') -> runParser (pf <$> p2) s'
 
 instance Alternative (Either Fail) where
   empty :: Either Fail a
@@ -86,9 +82,7 @@ instance Alternative Parser where
   empty :: Parser a
   empty = Parser $ pure (Left ("", ""))
   (<|>) :: Parser a -> Parser a -> Parser a
-  (Parser rp1) <|> (Parser rp2) = Parser f
-    where
-      f xs = rp1 xs <|> rp2 xs
+  (Parser rp1) <|> (Parser rp2) = Parser $ liftA2 (<|>) rp1 rp2
 
 instance Monad Parser where
   (>>=) :: Parser a -> (a -> Parser b) -> Parser b
